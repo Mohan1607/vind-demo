@@ -1,0 +1,45 @@
+name: CI Pipeline
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]  
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v2
+
+      # setup kubectl
+
+      - name: Set up kubectl
+        uses: azure/setup-kubectl@v1
+        with:
+          version: 'latest' 
+      # login into ghcr.io
+      - name: Login to GitHub Container Registry
+        uses: docker/login-action@v2
+        with:
+          registry: ghcr.io
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}   
+      # download vcluster cli
+      - name: Download vcluster CLI
+        run: |
+          curl -L -o vcluster https://github.com/loft-sh/vcluster/releases/latest/download/vcluster-linux-amd64
+          chmod +x vcluster
+          sudo mv vcluster /usr/local/bin/
+      # create vcluster and use docker driver to run it 
+      - name: Create vcluster
+        run: |
+          vcluster create ci-vcluster
+          vcluster use driver docker
+      # deploy nginx deployment to vcluster
+      - name: Deploy nginx to vcluster
+        run: |
+          kubectl apply -f deployment.yaml
+      # check if nginx deployment is running
+      - name: Check nginx deployment
+        run: |
+          kubectl get pods 
+          kubectl get deployments
