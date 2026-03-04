@@ -26,9 +26,9 @@ jobs:
       # download vcluster cli
       - name: Download vcluster CLI
         run: |
-          curl -L -o vcluster https://github.com/loft-sh/vcluster/releases/latest/download/vcluster-linux-amd64
-          chmod +x vcluster
-          sudo mv vcluster /usr/local/bin/
+          curl -L -o vcluster "https://github.com/loft-sh/vcluster/releases/latest/download/vcluster-linux-amd64"
+          sudo install -c -m 0755 vcluster /usr/local/bin
+          rm -f vcluster
       # create vcluster and use docker driver to run it 
       - name: Create vcluster
         run: |
