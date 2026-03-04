@@ -1,45 +1,45 @@
-name: CI Pipeline
+name: Deploy ConfigMap using VIND
+
 on:
   push:
-    branches: [main]
   pull_request:
-    branches: [main]  
+
 jobs:
-  build:
+  deploy:
     runs-on: ubuntu-latest
+
     steps:
-      - uses: actions/checkout@v2
+      # ---------- Checkout ----------
+      - name: Checkout repository
+        uses: actions/checkout@v4
 
-      # setup kubectl
+      # ---------- Install kubectl ----------
+      - name: Install kubectl
+        uses: azure/setup-kubectl@v4
 
-      - name: Set up kubectl
-        uses: azure/setup-kubectl@v1
-        with:
-          version: 'latest' 
-      # login into ghcr.io
+      # ---------- Login to GHCR ----------
       - name: Login to GitHub Container Registry
-        uses: docker/login-action@v2
-        with:
-          registry: ghcr.io
-          username: ${{ github.actor }}
-          password: ${{ secrets.GITHUB_TOKEN }}   
-      # download vcluster cli
-      - name: Download vcluster CLI
+        run: echo "${{ secrets.GITHUB_TOKEN }}" | docker login ghcr.io -u ${{ github.actor }} --password-stdin
+
+      # ---------- Install vcluster CLI ----------
+      - name: Install vcluster CLI
         run: |
           curl -L -o vcluster "https://github.com/loft-sh/vcluster/releases/latest/download/vcluster-linux-amd64"
           sudo install -c -m 0755 vcluster /usr/local/bin
           rm -f vcluster
-      # create vcluster and use docker driver to run it 
+
+     # ---------- Create vcluster (VIND mode) ----------
       - name: Create vcluster
         run: |
-          vcluster create ci-vcluster
           vcluster use driver docker
-      # deploy nginx deployment to vcluster
-      - name: Deploy nginx to vcluster
+          vcluster create demo-cluster
+
+     # ---------- Deploy ConfigMap ----------
+      - name: Apply ConfigMap
         run: |
-          kubectl apply -f deployment.yaml
-      # check if nginx deployment is running
-      - name: Check nginx deployment
+          kubectl apply -f cfgmap.yml
+
+      # ---------- Verify ----------
+      - name: Verify ConfigMap
         run: |
-          kubectl get pods 
-          kubectl get deployments
+          kubectl get configmap
