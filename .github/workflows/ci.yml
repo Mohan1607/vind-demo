@@ -37,9 +37,9 @@ jobs:
      # ---------- Deploy ConfigMap ----------
       - name: Apply ConfigMap
         run: |
-          kubectl apply -f cfgmap.yml
+          kubectl apply -f deployment.yml
 
       # ---------- Verify ----------
       - name: Verify ConfigMap
         run: |
-          kubectl get configmap
+          kubectl get deploy
