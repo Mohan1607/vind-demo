@@ -35,7 +35,7 @@ jobs:
           vcluster create demo-cluster
 
      # ---------- Deploy ConfigMap ----------
-      - name: Apply ConfigMap
+      - name: Apply deploy
         run: |
           kubectl apply -f deployment.yml
 
